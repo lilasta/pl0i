@@ -53,7 +53,7 @@ bool is_whitespace(char c)
 
 bool is_blank_line(const char *str)
 {
-	size_t len = strlen(str);
+	const size_t len = strlen(str);
 	for (size_t i = 0; i < len; ++i)
 	{
 		if (!is_whitespace(str[i]))
@@ -144,14 +144,14 @@ void stack_push(Stack *stack, int value)
 
 int stack_pop(Stack *stack)
 {
-	int value = stack->data[stack->top - 1];
+	const int value = stack->data[stack->top - 1];
 	stack->top--;
 	return value;
 }
 
 Record get_record(const Stack *stack, size_t base_ptr)
 {
-	Record record = {
+	const Record record = {
 		 .static_link = (size_t)stack_get(stack, base_ptr),
 		 .dynamic_link = (size_t)stack_get(stack, base_ptr + 1),
 		 .return_address = (size_t)stack_get(stack, base_ptr + 2),
@@ -246,14 +246,14 @@ Ops parse(FILE *fp)
 	// Labels: Mapping of operand values to instruction addresses
 	size_t *labels = (size_t *)malloc(lines_count * sizeof(size_t));
 
-	// Opcodes: This is not shared with RAM. It can be considered as Harvard architecture.
+	// Opcodes: The memory doesn't hold this.
 	Op *ops = (Op *)malloc(lines_count * sizeof(Op));
 	size_t ops_count = 0;
 
 	char line[20];
 	while (fgets(line, sizeof(line) / sizeof(char), fp) != NULL)
 	{
-		// Don't parse when it is blank line
+		// Don't parse if it is blank line
 		if (is_blank_line(line))
 		{
 			continue;
@@ -261,8 +261,6 @@ Ops parse(FILE *fp)
 
 		Op op = parse_op(line);
 
-		// Label maps an operand value (opr2) of a jump instruction
-		// to its own instruction address
 		if (op.kind == Op_Label)
 		{
 			labels[op.opr2] = ops_count;
@@ -298,18 +296,18 @@ size_t base(const Stack *stack, size_t base_ptr, size_t level_diff)
 	}
 	else
 	{
-		Record record = get_record(stack, base_ptr);
+		const Record record = get_record(stack, base_ptr);
 		return base(stack, record.static_link, level_diff - 1);
 	}
 }
 
 size_t value_at(const Stack *stack, size_t base_ptr, size_t level_diff, int offset)
 {
-	size_t base_addr = base(stack, base_ptr, level_diff);
+	const size_t base_addr = base(stack, base_ptr, level_diff);
 	return (size_t)((int)base_addr + offset);
 }
 
-void run(Ops ops)
+void run(const Ops ops)
 {
 	Record initial_record = {
 		 .static_link = 0,
@@ -557,7 +555,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	Ops ops = parse(fp);
+	const Ops ops = parse(fp);
 	fclose(fp);
 
 	run(ops);
